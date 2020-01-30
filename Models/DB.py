@@ -2,7 +2,6 @@ import pg8000
 from .config2 import (user, password, host, port, database)
 
 
-
 class DB:
 
     def __init__(self):
@@ -25,7 +24,7 @@ class DB:
         record = cursor.fetchone()
         print("You are connected to - ", record, "\n")
 
-    def createTableReviews(self):
+    def createTableReviews(self, domain):
         """
             id SERIAL
             header NOT NULL
@@ -33,22 +32,25 @@ class DB:
             rating NOT NULL
             role empty string if empty
             date empty string if empty
+            response TEXT
             source NOT NULL
-            
+
         """
         cursor.execute('BEGIN TRANSACTION;')
-        cursor.execute('''
-                        CREATE TABLE IF NOT EXISTS reviews (
+        cursor.execute(f'''
+                        CREATE TABLE IF NOT EXISTS {domain}_reviews (
                             id SERIAL PRIMARY KEY,
                             header TEXT NOT NULL,
                             body TEXT NOT NULL,
                             rating REAL NOT NULL,
                             role TEXT,
                             date TEXT,
+                            response TEXT,
                             source TEXT NOT NULL
                             );
                         ''')
-        cursor.execute(f"SELECT * FROM information_schema.tables WHERE table_schema = 'public'")
+        cursor.execute(
+            f"SELECT * FROM information_schema.tables WHERE table_schema = 'public'")
         results = cursor.fetchall()
         print(results)
         cursor.execute('COMMIT;')
@@ -74,19 +76,18 @@ class DB:
                             post_id INTEGER REFERENCES reviews(id)
                             );
                         ''')
-        cursor.execute(f"SELECT * FROM information_schema.tables WHERE table_schema = 'public'")
+        cursor.execute(
+            f"SELECT * FROM information_schema.tables WHERE table_schema = 'public'")
         results = cursor.fetchall()
         print(results)
         cursor.execute('COMMIT;')
 
-    def intoReviews(self, header, body, rating, role, date, source):
-        s = f"INSERT INTO reviews(header, body, rating, role, date, source) VALUES ($${header}$$, $${body}$$, {rating}, $${role}$$, $${date}$$, $${source}$$);"
-        cursor.execute('BEGIN TRANSACTION;')
-        cursor.execute(s)
-        cursor.execute('COMMIT;')
-
-    def intoResponses(self, body, role, date, source, post_id):
-        s = f"INSERT INTO responses(body, role, date, source, post_id) VALUES ($${body}$$, $${role}$$, $${date}$$, $${source}$$, {post_id});"
+    def intoReviews(self, domain, header, body, rating, role, date, response, source):
+        """
+             args = domain, header, body, rating, role, date, response, source
+             domain = source / {table_name}_reviews
+        """
+        s = f"INSERT INTO {domain}_reviews(header, body, rating, role, date, response, source) VALUES ($${header}$$, $${body}$$, {rating}, $${role}$$, $${date}$$, $${response}$$, $${source}$$);"
         cursor.execute('BEGIN TRANSACTION;')
         cursor.execute(s)
         cursor.execute('COMMIT;')
@@ -117,8 +118,8 @@ class DB:
             s = f"DROP TABLE IF EXISTS {args[0]} CASCADE;"
             cursor.execute(s)
         finally:
-             cursor.execute(f"SELECT * FROM information_schema.tables WHERE table_schema = 'public'")
-             results = cursor.fetchall()
-             print(results)
+            cursor.execute(
+                f"SELECT * FROM information_schema.tables WHERE table_schema = 'public'")
+            results = cursor.fetchall()
+            print(results)
         cursor.execute('COMMIT;')
-
