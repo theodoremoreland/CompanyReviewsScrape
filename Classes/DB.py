@@ -1,9 +1,11 @@
+# Third party
 import pg8000
-from .config2 import (user, password, host, port, database)
+
+# Custom
+from config import (user, password, host, port, database)
 
 
 class DB:
-
     def __init__(self):
         pass
 
@@ -23,6 +25,7 @@ class DB:
         cursor.execute("SELECT version();")
         record = cursor.fetchone()
         print("You are connected to - ", record, "\n")
+
 
     def createTableReviews(self, domain):
         """
@@ -55,6 +58,7 @@ class DB:
         print(results)
         cursor.execute('COMMIT;')
 
+
     def createTableResponses(self):
         """
             id AUTO_INCREMENT
@@ -82,6 +86,7 @@ class DB:
         print(results)
         cursor.execute('COMMIT;')
 
+
     def intoReviews(self, domain, header, body, rating, role, date, response, source):
         """
              args = domain, header, body, rating, role, date, response, source
@@ -105,6 +110,7 @@ class DB:
             print(record)
         except Exception as e:
             print(e)
+
 
     def dropTables(self, *args):
         """
